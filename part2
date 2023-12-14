@@ -1,0 +1,65 @@
+import easyocr
+reader = easyocr.Reader(['en'])
+result = reader.readtext(cropped_image)
+result
+text = result[0][-2]
+font = cv2.FONT_HERSHEY_SIMPLEX
+res = cv2.putText(img, text=text, org=(approx[0][0][0], approx[1][0][1]+60), fontFace=font, fontScale=1, color=(0,255,0), thickness=2, lineType=0)
+res = cv2.rectangle(img, tuple(approx[0][0]), tuple(approx[2][0]), (0,255,0),3)
+plt.imshow(cv2.cvtColor(res, cv2.COLOR_BGR2RGB))
+print(result)
+import pandas as pd
+
+# Load ground truth data from Excel
+ground_truth_data = pd.read_excel('/content/CV (2).xlsx')
+# Print column names to see what columns are available
+print(ground_truth_data.columns)
+# Example: Case-sensitive comparison
+input = ground_truth_data['ImageFileName'].tolist()  # Incorrect
+for index, row in ground_truth_data.iterrows():
+    print(f"Processing row {index}: {row['ImageFileName']}, {row['correct']}")
+    # ... (your existing code)
+
+# Add a new column for prediction correctness
+ground_truth_data['prediction_correct'] = False  
+
+true_positives = 0
+false_positives = 0
+false_negatives = 0
+
+for index, row in ground_truth_data.iterrows():
+    image_file_name = row['ImageFileName']
+    ground_truth_plate_number = row['correct']
+
+    # ... (your existing code)
+
+    # Update the 'prediction_correct' column
+    if pd.notna(ground_truth_plate_number) and ground_truth_plate_number != 0:
+        ground_truth_data.at[index, 'prediction_correct'] = True
+    else:
+        ground_truth_data.at[index, 'prediction_correct'] = False
+
+    # Calculate metrics
+    if ground_truth_data.at[index, 'prediction_correct']:
+        true_positives += 1
+    else:
+        false_positives += 1
+        false_negatives += 1
+
+# Calculate precision, recall, and F1 score
+precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
+recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
+f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+# Calculate accuracy
+total_predictions = len(ground_truth_data)
+accuracy = true_positives / total_predictions * 100
+
+# Print metrics
+print(f"Accuracy: {accuracy:.2f}%")
+print(f"Precision: {precision:.2f}")
+print(f"Recall: {recall:.2f}")
+print(f"F1 Score: {f1_score:.2f}")
+
+# Display the updated ground truth data with the 'prediction_correct' column
+print(ground_truth_data)
